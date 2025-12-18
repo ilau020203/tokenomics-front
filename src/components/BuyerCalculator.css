@@ -197,6 +197,88 @@
   font-size: 1.1rem;
 }
 
+.details-section {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
+
+.details-section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #213547;
+  border-bottom: 2px solid #646cff;
+  padding-bottom: 0.5rem;
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.breakdown-block {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border-left: 4px solid #646cff;
+}
+
+.breakdown-block h4 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #213547;
+  font-weight: 600;
+}
+
+.breakdown-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.breakdown-row:last-child {
+  border-bottom: none;
+}
+
+.breakdown-label {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.breakdown-value {
+  font-weight: 600;
+  color: #213547;
+  font-size: 0.95rem;
+  text-align: right;
+  margin-left: 1rem;
+}
+
+.breakdown-note {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #e8f4f8;
+  border-left: 4px solid #646cff;
+  border-radius: 4px;
+  color: #213547;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-style: italic;
+}
+
 .charts-section {
   margin-top: 2rem;
 }
@@ -231,6 +313,7 @@
 
   .input-section,
   .results-section,
+  .details-section,
   .charts-section {
     background: #1a1a1a;
     color: rgba(255, 255, 255, 0.87);
@@ -238,6 +321,7 @@
 
   .input-section h2,
   .results-section h2,
+  .details-section h2,
   .charts-section h2 {
     color: rgba(255, 255, 255, 0.87);
   }
@@ -293,6 +377,32 @@
     color: rgba(255, 255, 255, 0.87);
   }
 
+
+  .breakdown-block {
+    background: #1a1a1a;
+  }
+
+  .breakdown-block h4 {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .breakdown-label {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .breakdown-value {
+    color: rgba(255, 255, 255, 0.87);
+  }
+
+  .breakdown-row {
+    border-bottom-color: #444;
+  }
+
+  .breakdown-note {
+    background: #2a3a3a;
+    color: rgba(255, 255, 255, 0.87);
+  }
+
   .chart-container {
     background: #1a1a1a;
   }
@@ -324,6 +434,7 @@
 
   .input-section,
   .results-section,
+  .details-section,
   .charts-section {
     padding: 1.5rem;
   }

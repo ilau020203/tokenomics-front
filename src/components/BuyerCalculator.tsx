@@ -217,12 +217,21 @@ export default function BuyerCalculator() {
     inputs: UserInputs,
     params: SystemParams,
     globalTotalMinted: number
-  ): { totalMintedUser: number; newGlobalTotalMinted: number } => {
+  ): { 
+    totalMintedUser: number; 
+    newGlobalTotalMinted: number;
+    dfFirst: number;
+    dfLast: number;
+    mintedPerPurchaseAvg: number;
+  } => {
     let currentGlobalTotalMinted = globalTotalMinted;
     let totalMintedUser = 0;
 
     // Use integer period for consistency across all calculations
     const t = Math.floor(inputs.period);
+    
+    // Calculate DF at the start (when minted = 0)
+    const dfFirst = calculateDiminishingFactor(0, params);
     
     for (let i = 0; i < inputs.numberOfPurchases; i++) {
       const CB_percent = calculateCashbackPercent(t, params);
@@ -241,9 +250,16 @@ export default function BuyerCalculator() {
       totalMintedUser += mintedForPurchase;
     }
 
+    // Calculate DF at the end (after all purchases)
+    const dfLast = calculateDiminishingFactor(totalMintedUser, params);
+    const mintedPerPurchaseAvg = totalMintedUser / inputs.numberOfPurchases;
+
     return {
       totalMintedUser,
       newGlobalTotalMinted: currentGlobalTotalMinted,
+      dfFirst,
+      dfLast,
+      mintedPerPurchaseAvg,
     };
   };
 
@@ -272,6 +288,9 @@ export default function BuyerCalculator() {
   const results = useMemo(() => {
     // Use initial global total minted (simplified - in real scenario this would be global state)
     const initialGlobalTotalMinted = INITIAL_GLOBAL_MINTED;
+    
+    // Use integer period for consistency
+    const t = Math.floor(userInputs.period);
     
     // Calculate minted tokens using global total minted
     const mintResult = calculateMintedTokens(
@@ -302,6 +321,18 @@ export default function BuyerCalculator() {
     const burnDestroyed = totalBurned * 0.7; // 70% destroyed
     const burnRedistributed = totalBurned * 0.3; // 30% redistributed to sellers
 
+    // Calculate intermediate values for breakdown
+    const CB_percent = calculateCashbackPercent(t, systemParams);
+    const QF = calculateQualityFactor(userInputs.returnProbability, userInputs.reviewQuality, systemParams);
+    const capUsage = totalMintedUser / systemParams.user_cap;
+    const discount_percent = calculateDiscountPercent(assumedMarketBurnedYearTokens, systemParams);
+    const discountRubTotal = userInputs.purchasePrice * userInputs.numberOfPurchases * discount_percent;
+    const burnDiscountTokens = discountRubTotal / tokenPrice;
+    const accessFeeTokens = systemParams.access_fee;
+    const netValueRub = (totalMintedUser - totalBurned) * tokenPrice;
+    const effectiveCashbackRub = totalMintedUser * tokenPrice;
+    const effectiveDiscountRub = totalBurned * tokenPrice;
+
     return {
       totalMintedUser,
       tokenPrice,
@@ -309,52 +340,33 @@ export default function BuyerCalculator() {
       burnDestroyed,
       burnRedistributed,
       netTokens: totalMintedUser - totalBurned,
+      // Breakdown values
+      breakdown: {
+        // Mint breakdown
+        t,
+        CB_percent,
+        QF,
+        dfFirst: mintResult.dfFirst,
+        dfLast: mintResult.dfLast,
+        mintedPerPurchaseAvg: mintResult.mintedPerPurchaseAvg,
+        capUsage,
+        // Burn breakdown
+        discount_percent,
+        discountRubTotal,
+        burnDiscountTokens,
+        accessFeeTokens,
+        // Interpretation
+        netValueRub,
+        effectiveCashbackRub,
+        effectiveDiscountRub,
+        // Assumptions
+        initialGlobalTotalMinted,
+        assumedUsers: ASSUMED_USERS,
+        assumedBurnRate: ASSUMED_BURN_RATE,
+        newGlobalTotalMinted,
+      },
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInputs, systemParams]);
-
-  // Generate chart data for emission over time
-  const emissionChartData = useMemo(() => {
-    const data = [];
-    const maxPeriod = Math.max(userInputs.period, 10); // Show at least 10 periods for better visualization
-    let cumulativeMinted = 0;
-    let globalTotalMinted = INITIAL_GLOBAL_MINTED; // Initial global total minted (same as in results)
-    
-    // All purchases happen at the user's specified period (t = inputs.period)
-    // For visualization, we show the cumulative minted tokens up to each period
-    const userPeriod = Math.floor(userInputs.period);
-    
-    for (let t = 0; t <= maxPeriod; t++) {
-      // All purchases happen at the user's specified period
-      if (t === userPeriod && t <= maxPeriod) {
-        // Calculate all purchases at once for this period
-        for (let i = 0; i < userInputs.numberOfPurchases; i++) {
-          const CB_percent = calculateCashbackPercent(t, systemParams);
-          const QFi = calculateQualityFactor(
-            userInputs.returnProbability,
-            userInputs.reviewQuality,
-            systemParams
-          );
-          const DF = calculateDiminishingFactor(cumulativeMinted, systemParams);
-          const Ptoken = calculateTokenPrice(globalTotalMinted, systemParams);
-          
-          const mintedForPurchase =
-            (userInputs.purchasePrice * CB_percent * QFi * DF) / Ptoken;
-          
-          cumulativeMinted += mintedForPurchase;
-          // Update global total considering all similar users (same as in results)
-          globalTotalMinted += mintedForPurchase * ASSUMED_USERS;
-        }
-      }
-      
-      const price = calculateTokenPrice(globalTotalMinted, systemParams);
-      data.push({
-        period: t,
-        minted: cumulativeMinted, // Cumulative minted tokens
-        price: price,
-      });
-    }
-    return data;
   }, [userInputs, systemParams]);
 
   // Generate chart data for bonding curve
@@ -568,34 +580,118 @@ export default function BuyerCalculator() {
         </div>
         </div>
 
+        <div className="details-section">
+          <h2>Промежуточные шаги расчёта</h2>
+          
+          <div className="breakdown-grid">
+            <div className="breakdown-block">
+              <h4>Эмиссия (mint)</h4>
+              <div className="breakdown-table">
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Период t:</span>
+                  <span className="breakdown-value">{results.breakdown.t}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Cashback CB%(t):</span>
+                  <span className="breakdown-value">{(results.breakdown.CB_percent * 100).toFixed(2)}%</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Quality factor QF:</span>
+                  <span className="breakdown-value">{results.breakdown.QF.toFixed(3)}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">DF (первая покупка):</span>
+                  <span className="breakdown-value">{results.breakdown.dfFirst.toFixed(4)}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">DF (последняя покупка):</span>
+                  <span className="breakdown-value">{results.breakdown.dfLast.toFixed(4)}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Mint / покупка:</span>
+                  <span className="breakdown-value">{results.breakdown.mintedPerPurchaseAvg.toFixed(4)}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Использование user_cap:</span>
+                  <span className="breakdown-value">{(results.breakdown.capUsage * 100).toFixed(2)}%</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="breakdown-block">
+              <h4>Утилизация (burn)</h4>
+              <div className="breakdown-table">
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Discount %:</span>
+                  <span className="breakdown-value">{(results.breakdown.discount_percent * 100).toFixed(2)}%</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Скидка в рублях (всего):</span>
+                  <span className="breakdown-value">{results.breakdown.discountRubTotal.toFixed(2)} ₽</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Burn за скидку (tokens):</span>
+                  <span className="breakdown-value">{results.breakdown.burnDiscountTokens.toFixed(4)}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Access fee (tokens):</span>
+                  <span className="breakdown-value">{results.breakdown.accessFeeTokens.toFixed(2)}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Итого burn (tokens):</span>
+                  <span className="breakdown-value">{results.totalBurned.toFixed(4)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="breakdown-block">
+              <h4>Интерпретация</h4>
+              <div className="breakdown-table">
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Net в рублях:</span>
+                  <span className="breakdown-value">{results.breakdown.netValueRub.toFixed(2)} ₽</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Эффективный кэшбек в рублях:</span>
+                  <span className="breakdown-value">{results.breakdown.effectiveCashbackRub.toFixed(2)} ₽</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">Эффективная "стоимость" утилизации:</span>
+                  <span className="breakdown-value">{results.breakdown.effectiveDiscountRub.toFixed(2)} ₽</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="breakdown-block">
+              <h4>Допущения</h4>
+              <div className="breakdown-table">
+                <div className="breakdown-row">
+                  <span className="breakdown-label">INITIAL_GLOBAL_MINTED:</span>
+                  <span className="breakdown-value">{results.breakdown.initialGlobalTotalMinted}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">ASSUMED_USERS:</span>
+                  <span className="breakdown-value">{results.breakdown.assumedUsers}</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">ASSUMED_BURN_RATE:</span>
+                  <span className="breakdown-value">{(results.breakdown.assumedBurnRate * 100).toFixed(0)}%</span>
+                </div>
+                <div className="breakdown-row">
+                  <span className="breakdown-label">GLOBAL_TOTAL_MINTED_AFTER:</span>
+                  <span className="breakdown-value">{results.breakdown.newGlobalTotalMinted.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p className="breakdown-note">
+            Промежуточные коэффициенты показывают, какие факторы влияют на эмиссию и утилизацию: cashback и качество увеличивают mint, а высокая цена токена по bonding curve уменьшает mint и увеличивает стоимость утилизации в токенах.
+          </p>
+        </div>
+
         <div className="charts-section">
           <h2>Визуализация</h2>
-
-          <div className="chart-container">
-            <h3>Эмиссия токенов по периодам</h3>
-            <ResponsiveContainer width="100%" height={350}>
-              <LineChart data={emissionChartData} margin={{ top: 10, right: 30, left: 80, bottom: 100 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="period"
-                  padding={{ left: 0, right: 0 }}
-                  label={{ value: 'Период (ед.)', position: 'insideBottom', offset: -5, style: { textAnchor: 'middle' } }} 
-                />
-                <YAxis 
-                  label={{ value: 'Токены (шт.)', angle: -90, position: 'insideLeft', offset: -10, style: { textAnchor: 'middle' } }} 
-                />
-                <Tooltip />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Line
-                  type="monotone"
-                  dataKey="minted"
-                  stroke="#8884d8"
-                  name="Заминченные токены"
-                  strokeWidth={2}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
 
           <div className="chart-container">
             <h3>Bonding Curve (цена токена)</h3>
