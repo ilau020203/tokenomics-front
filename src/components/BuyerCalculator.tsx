@@ -63,8 +63,8 @@ const DEFAULT_SYSTEM_PARAMS: SystemParams = {
 export default function BuyerCalculator() {
   // User inputs state
   const [userInputs, setUserInputs] = useState<UserInputs>({
-    purchasePrice: 1000,
-    numberOfPurchases: 5,
+    purchasePrice: 10000,
+    numberOfPurchases: 7,
     period: 1,
     reviewQuality: 0.8,
     returnProbability: 0.1,
@@ -455,15 +455,30 @@ export default function BuyerCalculator() {
             <label htmlFor="period">
               Период (время с момента запуска) <span className="required">*</span>
             </label>
-            <input
-              id="period"
-              type="number"
-              min="0"
-              value={userInputs.period}
-              onChange={(e) => handleInputChange('period', e.target.value)}
-              onBlur={() => handleBlur('period')}
-              className={errors.period ? 'input-error' : ''}
-            />
+            <div className="slider-container">
+              <input
+                id="period"
+                type="range"
+                min="0"
+                max="20"
+                step="1"
+                value={userInputs.period}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  const percentage = (value / 20) * 100;
+                  e.target.style.setProperty('--slider-progress', `${percentage}%`);
+                  setUserInputs((prev) => ({ ...prev, period: value }));
+                }}
+                onInput={(e) => {
+                  const value = parseFloat((e.target as HTMLInputElement).value);
+                  const percentage = (value / 20) * 100;
+                  (e.target as HTMLInputElement).style.setProperty('--slider-progress', `${percentage}%`);
+                }}
+                style={{ '--slider-progress': `${(userInputs.period / 20) * 100}%` } as React.CSSProperties}
+                className={errors.period ? 'slider-error' : ''}
+              />
+              <span className="slider-value">{Math.floor(userInputs.period)}</span>
+            </div>
             {errors.period && (
               <span className="error-message">{errors.period}</span>
             )}
@@ -476,17 +491,30 @@ export default function BuyerCalculator() {
             <label htmlFor="reviewQuality">
               Качество отзывов (0-1) <span className="required">*</span>
             </label>
-            <input
-              id="reviewQuality"
-              type="number"
-              min="0"
-              max="1"
-              step="0.1"
-              value={userInputs.reviewQuality}
-              onChange={(e) => handleInputChange('reviewQuality', e.target.value)}
-              onBlur={() => handleBlur('reviewQuality')}
-              className={errors.reviewQuality ? 'input-error' : ''}
-            />
+            <div className="slider-container">
+              <input
+                id="reviewQuality"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={userInputs.reviewQuality}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  const percentage = (value / 1) * 100;
+                  e.target.style.setProperty('--slider-progress', `${percentage}%`);
+                  setUserInputs((prev) => ({ ...prev, reviewQuality: value }));
+                }}
+                onInput={(e) => {
+                  const value = parseFloat((e.target as HTMLInputElement).value);
+                  const percentage = (value / 1) * 100;
+                  (e.target as HTMLInputElement).style.setProperty('--slider-progress', `${percentage}%`);
+                }}
+                style={{ '--slider-progress': `${(userInputs.reviewQuality / 1) * 100}%` } as React.CSSProperties}
+                className={errors.reviewQuality ? 'slider-error' : ''}
+              />
+              <span className="slider-value">{(userInputs.reviewQuality * 100).toFixed(1)}%</span>
+            </div>
             {errors.reviewQuality && (
               <span className="error-message">{errors.reviewQuality}</span>
             )}
@@ -499,17 +527,30 @@ export default function BuyerCalculator() {
             <label htmlFor="returnProbability">
               Вероятность возврата (0-1) <span className="required">*</span>
             </label>
-            <input
-              id="returnProbability"
-              type="number"
-              min="0"
-              max="1"
-              step="0.1"
-              value={userInputs.returnProbability}
-              onChange={(e) => handleInputChange('returnProbability', e.target.value)}
-              onBlur={() => handleBlur('returnProbability')}
-              className={errors.returnProbability ? 'input-error' : ''}
-            />
+            <div className="slider-container">
+              <input
+                id="returnProbability"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={userInputs.returnProbability}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  const percentage = (value / 1) * 100;
+                  e.target.style.setProperty('--slider-progress', `${percentage}%`);
+                  setUserInputs((prev) => ({ ...prev, returnProbability: value }));
+                }}
+                onInput={(e) => {
+                  const value = parseFloat((e.target as HTMLInputElement).value);
+                  const percentage = (value / 1) * 100;
+                  (e.target as HTMLInputElement).style.setProperty('--slider-progress', `${percentage}%`);
+                }}
+                style={{ '--slider-progress': `${(userInputs.returnProbability / 1) * 100}%` } as React.CSSProperties}
+                className={errors.returnProbability ? 'slider-error' : ''}
+              />
+              <span className="slider-value">{(userInputs.returnProbability * 100).toFixed(1)}%</span>
+            </div>
             {errors.returnProbability && (
               <span className="error-message">{errors.returnProbability}</span>
             )}
