@@ -42,7 +42,7 @@ interface UserInputs {
 // Market simulation constants
 const ASSUMED_USERS = 100; // Number of similar users for global supply estimation
 const ASSUMED_BURN_RATE = 0.3; // Assumed burn rate (30% of minted tokens are burned)
-const INITIAL_GLOBAL_MINTED = 10000; // Initial global token supply before user's purchases
+const INITIAL_GLOBAL_MINTED = 1000; // Initial global token supply before user's purchases
 
 // Default system parameters
 const DEFAULT_SYSTEM_PARAMS: SystemParams = {
@@ -633,11 +633,11 @@ export default function BuyerCalculator() {
                   <span className="breakdown-value">{results.breakdown.t}</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Cashback CB%(t):</span>
+                  <span className="breakdown-label">Кэшбек CB%(t):</span>
                   <span className="breakdown-value">{(results.breakdown.CB_percent * 100).toFixed(2)}%</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Quality factor QF:</span>
+                  <span className="breakdown-label">Коэффициент качества QF:</span>
                   <span className="breakdown-value">{results.breakdown.QF.toFixed(3)}</span>
                 </div>
                 <div className="breakdown-row">
@@ -649,11 +649,11 @@ export default function BuyerCalculator() {
                   <span className="breakdown-value">{results.breakdown.dfLast.toFixed(4)}</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Mint / покупка:</span>
+                  <span className="breakdown-label">Эмиссия / покупка:</span>
                   <span className="breakdown-value">{results.breakdown.mintedPerPurchaseAvg.toFixed(4)}</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Использование user_cap:</span>
+                  <span className="breakdown-label">Использование лимита пользователя:</span>
                   <span className="breakdown-value">{(results.breakdown.capUsage * 100).toFixed(2)}%</span>
                 </div>
               </div>
@@ -663,7 +663,7 @@ export default function BuyerCalculator() {
               <h4>Утилизация (burn)</h4>
               <div className="breakdown-table">
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Discount %:</span>
+                  <span className="breakdown-label">Процент скидки:</span>
                   <span className="breakdown-value">{(results.breakdown.discount_percent * 100).toFixed(2)}%</span>
                 </div>
                 <div className="breakdown-row">
@@ -671,15 +671,15 @@ export default function BuyerCalculator() {
                   <span className="breakdown-value">{results.breakdown.discountRubTotal.toFixed(2)} ₽</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Burn за скидку (tokens):</span>
+                  <span className="breakdown-label">Сжигание за скидку (токены):</span>
                   <span className="breakdown-value">{results.breakdown.burnDiscountTokens.toFixed(4)}</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Access fee (tokens):</span>
+                  <span className="breakdown-label">Плата за доступ (токены):</span>
                   <span className="breakdown-value">{results.breakdown.accessFeeTokens.toFixed(2)}</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Итого burn (tokens):</span>
+                  <span className="breakdown-label">Итого сжигание (токены):</span>
                   <span className="breakdown-value">{results.totalBurned.toFixed(4)}</span>
                 </div>
               </div>
@@ -689,7 +689,7 @@ export default function BuyerCalculator() {
               <h4>Интерпретация</h4>
               <div className="breakdown-table">
                 <div className="breakdown-row">
-                  <span className="breakdown-label">Net в рублях:</span>
+                  <span className="breakdown-label">Чистая стоимость в рублях:</span>
                   <span className="breakdown-value">{results.breakdown.netValueRub.toFixed(2)} ₽</span>
                 </div>
                 <div className="breakdown-row">
@@ -707,19 +707,19 @@ export default function BuyerCalculator() {
               <h4>Допущения</h4>
               <div className="breakdown-table">
                 <div className="breakdown-row">
-                  <span className="breakdown-label">INITIAL_GLOBAL_MINTED:</span>
+                  <span className="breakdown-label">Начальная глобальная эмиссия:</span>
                   <span className="breakdown-value">{results.breakdown.initialGlobalTotalMinted}</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">ASSUMED_USERS:</span>
+                  <span className="breakdown-label">Предполагаемое количество пользователей:</span>
                   <span className="breakdown-value">{results.breakdown.assumedUsers}</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">ASSUMED_BURN_RATE:</span>
+                  <span className="breakdown-label">Предполагаемый процент сжигания:</span>
                   <span className="breakdown-value">{(results.breakdown.assumedBurnRate * 100).toFixed(0)}%</span>
                 </div>
                 <div className="breakdown-row">
-                  <span className="breakdown-label">GLOBAL_TOTAL_MINTED_AFTER:</span>
+                  <span className="breakdown-label">Глобальная эмиссия после:</span>
                   <span className="breakdown-value">{results.breakdown.newGlobalTotalMinted.toFixed(2)}</span>
                 </div>
               </div>
